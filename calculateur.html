@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculateur de Prix de Vente - Cerise Up</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: system-ui, -apple-system, sans-serif; }
+        input[type="range"]::-webkit-slider-thumb { background: #B42150; }
+        input[type="range"]::-moz-range-thumb { background: #B42150; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-50 to-purple-50 min-h-screen p-6">
+    <div class="max-w-5xl mx-auto">
+        <div class="bg-white rounded-2xl shadow-xl p-8">
+            <!-- Header -->
+            <div class="flex items-center justify-between mb-8">
+                <div class="flex items-center gap-3">
+                    <div class="bg-purple-100 p-3 rounded-xl">
+                        <svg class="w-8 h-8" style="color: #B42150;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
+                    <h1 class="text-3xl font-bold" style="color: #001F54;">Calculateur de Prix de Vente</h1>
+                </div>
+                <button id="catalogBtn" class="flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-colors" style="background-color: #F0F1F1; color: #001F54;">
+                    📚 Mon Catalogue (<span id="catalogCount">0</span>)
+                </button>
+            </div>
+
+            <!-- Catalogue Section -->
+            <div id="catalogSection" class="hidden mb-8 p-6 rounded-xl" style="background-color: #F0F1F1;">
+                <h2 class="text-2xl font-bold mb-4" style="color: #001F54;">Mon Catalogue de Produits</h2>
+                <div id="catalogList"></div>
+            </div>
+
+            <!-- Matériaux -->
+            <div class="mb-8">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h2 class="text-xl font-semibold" style="color: #001F54;">Matériaux</h2>
+                        <p class="text-sm text-gray-500 mt-1">Quantité × prix/kg</p>
+                    </div>
+                    <button onclick="addMaterial()" class="flex items-center gap-2 text-white px-4 py-2 rounded-lg transition-colors" style="background-color: #B42150;">
+                        <span>+ Ajouter</span>
+                    </button>
+                </div>
+                <div id="materialsList"></div>
+                <div class="mt-4 text-right text-lg font-semibold" style="color: #B42150;">
+                    Total matériaux: <span class="text-gray-700" id="totalMaterials">0.00 €</span>
+                </div>
+            </div>
+
+            <div class="mb-8 border-t-2" style="border-color: #C7A0CB;"></div>
+
+            <!-- Temps de travail -->
+            <div class="mb-8">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-semibold" style="color: #001F54;">Temps de travail</h2>
+                    <button onclick="addWorkStep()" class="flex items-center gap-2 text-white px-4 py-2 rounded-lg" style="background-color: #B42150;">
+                        <span>+ Ajouter une étape</span>
+                    </button>
+                </div>
+                <div id="workStepsList"></div>
+                <div class="mt-4 text-right text-lg font-semibold" style="color: #B42150;">
+                    Coût main-d'œuvre: <span class="text-gray-700" id="totalLabor">0.00 €</span>
+                </div>
+            </div>
+
+            <div class="mb-8 border-t-2" style="border-color: #C7A0CB;"></div>
+
+            <!-- Charges ponctuelles -->
+            <div class="mb-8">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h2 class="text-xl font-semibold" style="color: #001F54;">Charges ponctuelles</h2>
+                        <p class="text-sm text-gray-500 mt-1">Coûts spécifiques à ce produit</p>
+                    </div>
+                    <button onclick="addCost()" class="flex items-center gap-2 text-white px-4 py-2 rounded-lg" style="background-color: #B42150;">
+                        <span>+ Ajouter</span>
+                    </button>
+                </div>
+                <div id="costsList"></div>
+                <div class="mt-4 text-right text-lg font-semibold" style="color: #B42150;">
+                    Total charges: <span class="text-gray-700" id="totalCosts">0.00 €</span>
+                </div>
+            </div>
+
+            <div class="mb-8 border-t-2" style="border-color: #C7A0CB;"></div>
+
+            <!-- Marge -->
+            <div class="mb-8">
+                <label class="block text-xl font-semibold mb-4" style="color: #001F54;">
+                    Marge souhaitée (%)
+                </label>
+                <div class="flex items-center gap-4">
+                    <input type="range" id="marginRange" min="0" max="100" step="5" value="30" class="flex-1 h-3 bg-gray-200 rounded-lg cursor-pointer" oninput="updateMargin(this.value)">
+                    <input type="text" id="marginInput" value="30" class="w-24 px-3 py-2 border border-gray-300 rounded-lg text-center font-semibold" oninput="updateMargin(this.value)">
+                    <span class="text-gray-500">%</span>
+                </div>
+            </div>
+
+            <div class="mb-8 border-t-2" style="border-color: #C7A0CB;"></div>
+
+            <!-- Résultats -->
+            <div class="rounded-2xl p-8 text-white" style="background-color: #001F54;">
+                <h2 class="text-2xl font-bold mb-6">Résultats</h2>
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center pb-4 border-b border-white/20">
+                        <span class="text-lg">Coût total de production</span>
+                        <span class="text-2xl font-bold" id="totalCost">0.00 €</span>
+                    </div>
+                    <div class="flex justify-between items-center pb-4 border-b border-white/20">
+                        <span class="text-lg">Marge (<span id="marginPercent">30</span>%)</span>
+                        <span class="text-2xl font-bold" id="profit">0.00 €</span>
+                    </div>
+                    <div class="flex justify-between items-center pt-2">
+                        <span class="text-xl font-semibold">Prix de vente recommandé</span>
+                        <span class="text-4xl font-bold" id="sellingPrice">0.00 €</span>
+                    </div>
+                </div>
+                <div class="mt-6 pt-6 border-t border-white/20">
+                    <button onclick="showSaveDialog()" class="w-full py-3 rounded-lg font-semibold text-lg transition-colors" style="background-color: #C7A0CB;">
+                        💾 Enregistrer dans le catalogue
+                    </button>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="mt-8 pt-6 border-t-2" style="border-color: #C7A0CB;">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                    <div class="w-32 h-32 border-2 border-dashed rounded-lg flex items-center justify-center text-gray-400 text-sm text-center p-2" style="border-color: #C7A0CB;">
+                       <img src="https://d1yei2z3i6k35z.cloudfront.net/13882048/68b9ba238c879_Logo.png" alt="Mon Logo" style="max-width: 140px; height: auto;">
+                    </div>
+                    <div class="flex-1 text-sm text-gray-600 text-center md:text-right">
+                        <p class="font-semibold mb-2" style="color: #001F54;">Mentions légales</p>
+                        <p class="text-xs leading-relaxed mb-3">
+                            Cet outil de calcul est fourni à titre indicatif uniquement. Les résultats ne constituent pas un conseil professionnel.
+                        </p>
+                        <div class="text-xs border-t pt-3 mt-3" style="border-color: #C7A0CB;">
+                            <p class="font-semibold mb-2" style="color: #001F54;">© 2025 Cerise Up - Tous droits réservés</p>
+                            <p class="leading-relaxed">Toute reproduction interdite sans autorisation écrite préalable.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dialog de sauvegarde -->
+    <div id="saveDialog" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl p-6 max-w-md w-full">
+            <h3 class="text-2xl font-bold mb-4" style="color: #001F54;">Enregistrer dans le catalogue</h3>
+            <label class="block text-sm font-semibold mb-2 text-gray-700">Nom du produit :</label>
+            <input type="text" id="productName" placeholder="Ex: Bracelet en perles bleu" class="w-full px-4 py-3 border-2 rounded-lg mb-4" style="border-color: #C7A0CB;">
+            <div class="flex gap-3">
+                <button onclick="saveProduct()" class="flex-1 py-3 rounded-lg font-semibold text-white" style="background-color: #B42150;">💾 Enregistrer</button>
+                <button onclick="closeSaveDialog()" class="flex-1 py-3 rounded-lg font-semibold bg-gray-300">Annuler</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let materials = [{ id: 1, name: '', quantity: '', price: '' }];
+        let workSteps = [{ id: 1, desc: '', hours: '', rate: '20' }];
+        let costs = [{ id: 1, name: '', cost: '' }];
+        let margin = 30;
+        let catalog = [];
+
+        function toNum(val) {
+            if (!val) return 0;
+            return parseFloat(String(val).replace(',', '.')) || 0;
+        }
+
+        function addMaterial() {
+            materials.push({ id: Date.now(), name: '', quantity: '', price: '' });
+            renderMaterials();
+        }
+
+        function removeMaterial(id) {
+            if (materials.length > 1) {
+                materials = materials.filter(m => m.id !== id);
+                renderMaterials();
+            }
+        }
+
+        function renderMaterials() {
+            const html = materials.map(m => `
+                <div class="mb-4">
+                    <div class="flex flex-wrap gap-2">
+                        <input type="text" placeholder="Nom" value="${m.name}" onchange="materials.find(x=>x.id==${m.id}).name=this.value; calculate()" class="flex-1 min-w-[200px] px-3 py-2 border rounded-lg">
+                        <input type="text" inputmode="decimal" placeholder="Quantité" value="${m.quantity}" onchange="materials.find(x=>x.id==${m.id}).quantity=this.value; calculate()" class="w-28 px-3 py-2 border rounded-lg">
+                        <span class="text-gray-500 self-center">×</span>
+                        <input type="text" inputmode="decimal" placeholder="Prix/kg" value="${m.price}" onchange="materials.find(x=>x.id==${m.id}).price=this.value; calculate()" class="w-28 px-3 py-2 border rounded-lg">
+                        <button onclick="removeMaterial(${m.id})" class="p-2 text-red-500 hover:bg-red-50 rounded-lg" ${materials.length === 1 ? 'disabled' : ''}>🗑️</button>
+                    </div>
+                    ${toNum(m.quantity) * toNum(m.price) > 0 ? `<div class="text-sm font-semibold mt-2 ml-2" style="color: #B42150;">= ${(toNum(m.quantity) * toNum(m.price)).toFixed(2)} €</div>` : ''}
+                </div>
+            `).join('');
+            document.getElementById('materialsList').innerHTML = html;
+            calculate();
+        }
+
+        function addWorkStep() {
+            workSteps.push({ id: Date.now(), desc: '', hours: '', rate: '20' });
+            renderWorkSteps();
+        }
+
+        function removeWorkStep(id) {
+            if (workSteps.length > 1) {
+                workSteps = workSteps.filter(w => w.id !== id);
+                renderWorkSteps();
+            }
+        }
+
+        function renderWorkSteps() {
+            const html = workSteps.map(w => `
+                <div class="mb-4">
+                    <div class="flex flex-wrap gap-2">
+                        <input type="text" placeholder="Description" value="${w.desc}" onchange="workSteps.find(x=>x.id==${w.id}).desc=this.value; calculate()" class="flex-1 min-w-[200px] px-3 py-2 border rounded-lg">
+                        <input type="text" inputmode="decimal" placeholder="Heures" value="${w.hours}" onchange="workSteps.find(x=>x.id==${w.id}).hours=this.value; calculate()" class="w-24 px-3 py-2 border rounded-lg">
+                        <span class="text-gray-500 self-center">×</span>
+                        <input type="text" inputmode="decimal" placeholder="€/h" value="${w.rate}" onchange="workSteps.find(x=>x.id==${w.id}).rate=this.value; calculate()" class="w-24 px-3 py-2 border rounded-lg">
+                        <button onclick="removeWorkStep(${w.id})" class="p-2 text-red-500 hover:bg-red-50 rounded-lg" ${workSteps.length === 1 ? 'disabled' : ''}>🗑️</button>
+                    </div>
+                    ${toNum(w.hours) * toNum(w.rate) > 0 ? `<div class="text-sm font-semibold mt-2 ml-2" style="color: #B42150;">= ${(toNum(w.hours) * toNum(w.rate)).toFixed(2)} €</div>` : ''}
+                </div>
+            `).join('');
+            document.getElementById('workStepsList').innerHTML = html;
+            calculate();
+        }
+
+        function addCost() {
+            costs.push({ id: Date.now(), name: '', cost: '' });
+            renderCosts();
+        }
+
+        function removeCost(id) {
+            if (costs.length > 1) {
+                costs = costs.filter(c => c.id !== id);
+                renderCosts();
+            }
+        }
+
+        function renderCosts() {
+            const html = costs.map(c => `
+                <div class="flex gap-2 mb-3">
+                    <input type="text" placeholder="Nom" value="${c.name}" onchange="costs.find(x=>x.id==${c.id}).name=this.value; calculate()" class="flex-1 px-3 py-2 border rounded-lg">
+                    <input type="text" inputmode="decimal" placeholder="Prix" value="${c.cost}" onchange="costs.find(x=>x.id==${c.id}).cost=this.value; calculate()" class="w-28 px-3 py-2 border rounded-lg">
+                    <button onclick="removeCost(${c.id})" class="p-2 text-red-500 hover:bg-red-50 rounded-lg" ${costs.length === 1 ? 'disabled' : ''}>🗑️</button>
+                </div>
+            `).join('');
+            document.getElementById('costsList').innerHTML = html;
+            calculate();
+        }
+
+        function updateMargin(val) {
+            margin = toNum(val);
+            document.getElementById('marginRange').value = margin;
+            document.getElementById('marginInput').value = margin;
+            calculate();
+        }
+
+        function calculate() {
+            const totalMat = materials.reduce((sum, m) => sum + (toNum(m.quantity) * toNum(m.price)), 0);
+            const totalWork = workSteps.reduce((sum, w) => sum + (toNum(w.hours) * toNum(w.rate)), 0);
+            const totalCost = costs.reduce((sum, c) => sum + toNum(c.cost), 0);
+            const total = totalMat + totalWork + totalCost;
+            const price = total * (1 + margin / 100);
+            const prof = price - total;
+
+            document.getElementById('totalMaterials').textContent = totalMat.toFixed(2) + ' €';
+            document.getElementById('totalLabor').textContent = totalWork.toFixed(2) + ' €';
+            document.getElementById('totalCosts').textContent = totalCost.toFixed(2) + ' €';
+            document.getElementById('totalCost').textContent = total.toFixed(2) + ' €';
+            document.getElementById('marginPercent').textContent = margin.toFixed(0);
+            document.getElementById('profit').textContent = prof.toFixed(2) + ' €';
+            document.getElementById('sellingPrice').textContent = price.toFixed(2) + ' €';
+        }
+
+        function showSaveDialog() {
+            document.getElementById('saveDialog').classList.remove('hidden');
+        }
+
+        function closeSaveDialog() {
+            document.getElementById('saveDialog').classList.add('hidden');
+            document.getElementById('productName').value = '';
+        }
+
+        function saveProduct() {
+            const name = document.getElementById('productName').value.trim();
+            if (!name) return alert('Entrez un nom de produit');
+
+            const totalMat = materials.reduce((sum, m) => sum + (toNum(m.quantity) * toNum(m.price)), 0);
+            const totalWork = workSteps.reduce((sum, w) => sum + (toNum(w.hours) * toNum(w.rate)), 0);
+            const totalCost = costs.reduce((sum, c) => sum + toNum(c.cost), 0);
+            const total = totalMat + totalWork + totalCost;
+            const price = total * (1 + margin / 100);
+
+            catalog.push({
+                id: Date.now(),
+                name,
+                date: new Date().toLocaleDateString('fr-FR'),
+                materials: [...materials],
+                workSteps: [...workSteps],
+                costs: [...costs],
+                margin,
+                totals: { materials: totalMat, labor: totalWork, costs: totalCost, total, price }
+            });
+
+            localStorage.setItem('catalog', JSON.stringify(catalog));
+            closeSaveDialog();
+            updateCatalog();
+            alert('Produit enregistré !');
+        }
+
+        function updateCatalog() {
+            document.getElementById('catalogCount').textContent = catalog.length;
+            const html = catalog.length === 0 ? 
+                '<p class="text-gray-500 text-center py-8">Aucun produit enregistré</p>' :
+                catalog.map(p => `
+                    <div class="bg-white p-4 rounded-lg border-2 mb-4" style="border-color: #C7A0CB;">
+                        <div class="flex justify-between mb-3">
+                            <div>
+                                <h3 class="text-xl font-bold" style="color: #001F54;">${p.name}</h3>
+                                <p class="text-sm text-gray-500">${p.date}</p>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-2xl font-bold" style="color: #B42150;">${p.totals.price.toFixed(2)} €</div>
+                            </div>
+                        </div>
+                        <button onclick="deleteProduct(${p.id})" class="px-3 py-1 rounded text-sm bg-red-500 text-white">🗑️ Supprimer</button>
+                    </div>
+                `).join('');
+            document.getElementById('catalogList').innerHTML = html;
+        }
+
+        function deleteProduct(id) {
+            if (confirm('Supprimer ce produit ?')) {
+                catalog = catalog.filter(p => p.id !== id);
+                localStorage.setItem('catalog', JSON.stringify(catalog));
+                updateCatalog();
+            }
+        }
+
+        document.getElementById('catalogBtn').onclick = () => {
+            const section = document.getElementById('catalogSection');
+            section.classList.toggle('hidden');
+        };
+
+        // Init
+        const saved = localStorage.getItem('catalog');
+        if (saved) catalog = JSON.parse(saved);
+        renderMaterials();
+        renderWorkSteps();
+        renderCosts();
+        updateCatalog();
+        calculate();
+    </script>
+</body>
+</html>
